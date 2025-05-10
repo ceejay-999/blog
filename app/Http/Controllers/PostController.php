@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use App\Http\Requests\PostFormRequest;
 
 class PostController extends Controller
 {
@@ -33,18 +34,10 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostFormRequest $request)
     {
-        $request->validate([
-            'title' => 'required',
-            'description' => ['required', 'min:10'],
-        ]);
-        $post = new Post();
-
-        $post->title = $request->input('title');
-        $post->description = $request->input('description');
-
-        $post->save();
+        $validated = $request->validated();
+        $post = Post::create($validated);
 
         return redirect()
             ->route('posts.create')
@@ -84,19 +77,10 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(PostFormRequest $request, Post $post)
     {
-        $request->validate([
-            'title' => 'required',
-            'description' => ['required', 'min:10'],
-        ]);
-
-        $post = Post::findOrFail($id);
-
-        $post->title = $request->input('title');
-        $post->description = $request->input('description');
-
-        $post->save();
+        $validated = $request->validated();
+        $post->update($validated);
 
         return redirect()
         ->route('posts.show', ['post' => $post->id])
@@ -109,8 +93,12 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Post $post)
     {
-        //
+        $post->delete();
+        
+        return redirect()
+            ->route('home')
+            ->with('success', 'Post has been deleted!');
     }
 }
